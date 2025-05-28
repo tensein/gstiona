@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>La Gestiona</title>
+  <style>
+    /* Variables */
+    :root {
+      --primary: #2c3e50;
+      --accent: #3498db;     /* En cours - bleu */
+      --warning: #f1c40f;    /* En attente - jaune */
+      --success: #2ecc71;    /* Terminé - vert */
+      --danger: #e74c3c;
+      --light: #ecf0f1;
+      --max-width: 400px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0 auto;
+      max-width: var(--max-width);
+      background: var(--light);
+      color: var(--primary);
+      padding: 0 0.5rem;
+    }
+
+    header {
+      background-color: var(--accent);
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background: white;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    nav a {
+      flex: 1;
+      min-width: 60px;
+      padding: 0.6rem 0.25rem;
+      text-align: center;
+      text-decoration: none;
+      color: #333;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      transition: background 0.3s ease;
+    }
+
+    nav a:hover,
+    nav a.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    section {
+      background: white;
+      padding: 1rem 0.5rem;
+      display: none;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    form {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 0.75rem;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .suggestions {
+      position: absolute;
+      z-index: 10;
+      background: white;
+      border: 1px solid #ddd;
+      border-top: none;
+      width: calc(100% - 1rem);
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: -0.25rem;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .suggestion-item {
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+    }
+
+    .suggestion-item:hover {
+      background-color: #f1f1f1;
+    }
+
+    .collapsible {
+      margin-top: 1rem;
+    }
+
+    .collapsible-title {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 0.6rem;
+      width: 100%;
+      text-align: left;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: var(--primary); /* Texte sombre */
+    }
+
+    .collapsible-title:hover {
+      background: #f1f1f1;
+    }
+
+    .collapsible-content {
+      padding: 0.75rem 0.5rem;
+      background: #fff;
+      border: 1px solid #eee;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .folder-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      border-left: 5px solid var(--accent);
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .folder-info {
+      font-size: 0.9rem;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 0.5rem;
+    }
+
+    .state-en-cours .status-indicator {
+      background-color: var(--accent);
+    }
+
+    .state-en-attente .status-indicator {
+      background-color: var(--warning);
+    }
+
+    .state-termine .status-indicator {
+      background-color: var(--success);
+    }
+
+    button,
+    .btn-small {
+      margin-top: 1rem;
+      padding: 0.6rem 1rem;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+
+    .btn-small {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.4rem;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>La Gestiona</h1>
+</header>
+
+<nav>
+  <a href="#" onclick="showSection('add')" class="active">? AJT</a>
+  <a href="#" onclick="showSection('list')">?? DOS</a>
+  <a href="#" onclick="showSection('edit')">?? MOD</a>
+  <a href="#" onclick="showSection('stats')">?? ÉTAT</a>
+  <a href="#" onclick="showSection('search')">?? FIND</a>
+</nav>
+
+<!-- Formulaire d'ajout -->
+<section id="add" class="active">
+  <h2>Ajouter un dossier</h2>
+  <form onsubmit="addFolder(event)">
+    <input type="hidden" id="idInput" />
+
+    <!-- Nom du dossier avec suggestions -->
+    <label>Nom du dossier :
+      <div style="position:relative;">
+        <input type="text" id="nameInput" required oninput="filterSuggestions()" />
+        <div id="nameSuggestions" class="suggestions" style="display:none;"></div>
+      </div>
+    </label>
+
+    <label>Date d'arrivée :
+      <input type="date" id="arrivalDateInput" required />
+    </label>
+    <label>État du dossier :
+      <select id="statusInput" onchange="toggleEndDateAndWritings(this.value)">
+        <option value="En cours">En cours</option>
+        <option value="En attente">En attente</option>
+        <option value="Terminé">Terminé</option>
+      </select>
+    </label>
+
+    <div id="endDateGroup" style="display:none;">
+      <label>Date de fin :
+        <input type="date" id="endDateInput" />
+      </label>
+      <label>Nombre d'écritures :
+        <input type="number" id="writingsInput" min="0" />
+      </label>
+    </div>
+
+    <!-- Pièces saisies -->
+    <div class="collapsible">
+      <button type="button" onclick="toggleCollapsible('piecesSaisies')" class="collapsible-title">?? Pièces saisies</button>
+      <div id="piecesSaisies" class="collapsible-content" style="display:none;">
+        <label><input type="checkbox" id="purchasesCheck"> Achats</label>
+        <label><input type="checkbox" id="salesCheck"> Ventes</label>
+        <label><input type="checkbox" id="bankCheck"> Banque</label>
+        <label><input type="checkbox" id="cashCheck"> Caisse</label>
+        <label><input type="checkbox" id="odCheck"> OD</label>
+      </div>
+    </div>
+
+    <!-- Pièces manquantes -->
+    <div class="collapsible">
+      <button type="button" onclick="toggleCollapsible('piecesManquantes')" class="collapsible-title">?? Pièces manquantes</button>
+      <div id="piecesManquantes" class="collapsible-content" style="display:none;">
+        <label><input type="checkbox" id="missingPurchasesCheck"> Achats</label>
+        <label><input type="checkbox" id="missingSalesCheck"> Ventes</label>
+        <label><input type="checkbox" id="missingBankCheck"> Relevé</label>
+        <label><input type="checkbox" id="missingWagesCheck"> Salaires</label>
+        <label><input type="checkbox" id="missingOtherCheck" onchange="toggleMissingOther()"> Autres</label>
+        <div id="missingOtherTextGroup" style="margin-left:1.5rem;display:none;">
+          <label>Détail :
+            <input type="text" id="missingOtherTextInput" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remarques -->
+    <label>Remarques :
+      <textarea id="remarkInput"></textarea>
+    </label>
+
+    <button type="submit">Ajouter</button>
+  </form>
+</section>
+
+<!-- Liste des dossiers -->
+<section id="list">
+  <h2>Liste des dossiers</h2>
+  <div id="folderList"></div>
+</section>
+
+<!-- Modification -->
+<section id="edit">
+  <h2>Modifier un dossier</h2>
+  <div id="editFolderList"></div>
+  <div id="editFormContainer" style="display:none;">
+    <h3>Modifier un dossier</h3>
+    <form onsubmit="saveEditedFolder(event)">
+      <input type="hidden" id="editIdInput" />
+      <label>Nom du dossier :
+        <input type="text" id="editNameInput" required />
+      </label>
+      <label>Date d'arrivée :
+        <input type="date" id="editArrivalDateInput" required />
+      </label>
+      <label>État du dossier :
+        <select id="editStatusInput" onchange="toggleEditEndDateAndWritings(this.value)">
+          <option value="En cours">En cours</option>
+          <option value="En attente">En attente</option>
+          <option value="Terminé">Terminé</option>
+        </select>
+      </label>
+      <div id="editEndDateGroup" style="display:none;">
+        <label>Date de fin :
+          <input type="date" id="editEndDateInput" />
+        </label>
+        <label>Nombre d'écritures :
+          <input type="number" id="editWritingsInput" min="0" />
+        </label>
+      </div>
+      <button type="submit">Sauvegarder</button>
+    </form>
+  </div>
+</section>
+
+<!-- États -->
+<section id="stats">
+  <h2>États</h2>
+  <button onclick="printTable('table-treated')">Imprimer traités</button>
+  <table id="table-treated"><thead><tr><th>Date</th><th>Nom</th><th>Écritures</th></tr></thead><tbody></tbody></table>
+
+  <button onclick="printTable('table-missing')">Imprimer manquants</button>
+  <table id="table-missing"><thead><tr><th>Date</th><th>Nom</th><th>Pièces manquantes</th></tr></thead><tbody></tbody></table>
+
+  <button onclick="printTable('table-totals')">Imprimer total écritures</button>
+  <table id="table-totals"><thead><tr><th>Nom</th><th>Total écritures</th></tr></thead><tbody><tfoot><tr><th>Total général</th><td id="total-general">0</td></tr></tfoot></table>
+</section>
+
+<!-- Recherche -->
+<section id="search">
+  <h2>Rechercher des dossiers</h2>
+  <form onsubmit="performSearch(event)">
+    <label>Nom :
+      <input type="text" id="searchName" />
+    </label>
+    <label>Date de début :
+      <input type="date" id="searchStartDate" />
+    </label>
+    <label>Date de fin :
+      <input type="date" id="searchEndDate" />
+    </label>
+    <button type="submit">Rechercher</button>
+  </form>
+  <div id="searchResults"></div>
+</section>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
+    event.target.classList.add("active");
+    document.querySelectorAll("section").forEach(s => s.style.display = "none");
+    document.getElementById(id).style.display = "block";
+
+    if (id === "list") renderFolderList();
+    if (id === "edit") renderEditList();
+  }
+
+  function formatName(name) {
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function getFolders() {
+    return JSON.parse(localStorage.getItem("folders") || "[]");
+  }
+
+  function saveFolders(folders) {
+    localStorage.setItem("folders", JSON.stringify(folders));
+  }
+
+  // ---- AUTOCOMPLÉTION NOM DOSSIER ---- //
+  function filterSuggestions() {
+    const input = document.getElementById("nameInput").value.toLowerCase();
+    const suggestionsDiv = document.getElementById("nameSuggestions");
+    const folders = getFolders();
+
+    let names = [...new Set(folders.map(f => f.name))]; // Noms uniques
+    const filtered = names.filter(n => n.toLowerCase().includes(input));
+
+    suggestionsDiv.innerHTML = "";
+    if (!input) return;
+
+    filtered.forEach(name => {
+      const div = document.createElement("div");
+      div.className = "suggestion-item";
+      div.textContent = name;
+      div.onclick = () => {
+        document.getElementById("nameInput").value = name;
+        suggestionsDiv.style.display = "none";
+      };
+      suggestionsDiv.appendChild(div);
+    });
+
+    suggestionsDiv.style.display = "block";
+  }
+
+  // ---- PAGE LISTE ---- //
+  function renderFolderList() {
+    const list = document.getElementById("folderList");
+    const folders = getFolders();
+    list.innerHTML = "<h3>Mes dossiers</h3>";
+
+    if (folders.length === 0) {
+      list.innerHTML += "<p>Aucun dossier.</p>";
+      return;
+    }
+
+    folders.forEach(folder => {
+      const item = document.createElement("div");
+      item.className = `folder-list-item state-${folder.status.toLowerCase().replace(/\s+/g, '-')}`;
+      item.innerHTML = `
+        <div class="folder-info">
+          <strong>${folder.name}</strong> – ${new Date(folder.arrivalDate).toLocaleDateString()}
+          <span class="status-indicator"></span>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  // ---- PAGE MODIFIER ---- //
+  function renderEditList() {
+    const list = document.getElementById("editFolderList");
+    const form = document.getElementById("editFormContainer");
+    const folders = getFolders();
+    list.innerHTML = "<h3>Sélectionnez un dossier à modifier</h3>";
+    form.style.display = "none";
+
+    if (folders.length === 0) {
+      list.innerHTML += "<p>Aucun dossier disponible.</p>";
+      return;
+    }
+
+    folders.forEach(folder => {
+      const div = document.createElement("div");
+      div.className = "folder-card";
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <strong>${folder.name}</strong><br/>
+            <small>${new Date(folder.arrivalDate).toLocaleDateString()}</small>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn-small btn-edit" onclick="loadFolderForEdit(${folder.id})">Modifier</button>
+            <button type="button" class="btn-small btn-danger" onclick="confirmDelete(${folder.id})">Supprimer</button>
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function confirmDelete(id) {
+    const folders = getFolders().filter(f => f.id !== id);
+    saveFolders(folders);
+    alert("Dossier supprimé !");
+    renderFolderList();
+    renderEditList();
+  }
+
+  function loadFolderForEdit(id) {
+    const folder = getFolders().find(f => f.id === id);
+    if (!folder) return;
+
+    document.getElementById("editIdInput").value = folder.id;
+    document.getElementById("editNameInput").value = folder.name;
+    document.getElementById("editArrivalDateInput").value = folder.arrivalDate;
+    document.getElementById("editStatusInput").value = folder.status;
+    toggleEditEndDateAndWritings(folder.status);
+
+    document.getElementById("editEndDateInput").value = folder.endDate || "";
+    document.getElementById("editWritingsInput").value = folder.writings || "";
+
+    document.getElementById("editFormContainer").style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function saveEditedFolder(e) {
+    e.preventDefault();
+    const id = parseInt(document.getElementById("editIdInput").value);
+    const updatedFolder = {
+      id: id,
+      name: formatName(document.getElementById("editNameInput").value),
+      arrivalDate: document.getElementById("editArrivalDateInput").value,
+      status: document.getElementById("editStatusInput").value,
+      endDate: document.getElementById("editStatusInput").value === "Terminé"
+        ? document.getElementById("editEndDateInput").value : null,
+      writings: document.getElementById("editStatusInput").value === "Terminé"
+        ? parseInt(document.getElementById("editWritingsInput").value) : null,
+
+      purchases: false,
+      sales: false,
+      bank: false,
+      cash: false,
+      od: false,
+
+      missingPurchases: false,
+      missingSales: false,
+      missingBank: false,
+      missingWages: false,
+      missingOther: false,
+      missingOtherText: "",
+      remark: ""
+    };
+
+    const folders = getFolders().map(f => f.id === id ? updatedFolder : f);
+    saveFolders(folders);
+    alert("Dossier modifié !");
+    renderFolderList();
+    renderEditList();
+    document.getElementById("editFormContainer").style.display = "none";
+  }
+
+  function toggleEndDateAndWritings(value) {
+    document.getElementById("endDateGroup").style.display = value === "Terminé" ? "block" : "none";
+  }
+
+  function toggleEditEndDateAndWritings(value) {
+    document.getElementById("editEndDateGroup").style.display = value === "Terminé" ? "block" : "none";
+  }
+
+  function toggleMissingOther() {
+    const checked = document.getElementById("missingOtherCheck").checked;
+    document.getElementById("missingOtherTextGroup").style.display = checked ? "block" : "none";
+  }
+
+  function toggleCollapsible(id) {
+    const content = document.getElementById(id);
+    content.style.display = content.style.display === "none" ? "block" : "none";
+  }
+
+  // ---- AJOUT DE DOSSIER ---- //
+  function addFolder(e) {
+    e.preventDefault();
+    const folders = getFolders();
+
+    const newFolder = {
+      id: Date.now(),
+      name: formatName(document.getElementById("nameInput").value),
+      arrivalDate: document.getElementById("arrivalDateInput").value,
+      status: document.getElementById("statusInput").value,
+      endDate: document.getElementById("endDateInput").value || null,
+      writings: document.getElementById("writingsInput").value ? parseInt(document.getElementById("writingsInput").value) : null,
+
+      purchases: document.getElementById("purchasesCheck").checked,
+      sales: document.getElementById("salesCheck").checked,
+      bank: document.getElementById("bankCheck").checked,
+      cash: document.getElementById("cashCheck").checked,
+      od: document.getElementById("odCheck").checked,
+
+      missingPurchases: document.getElementById("missingPurchasesCheck").checked,
+      missingSales: document.getElementById("missingSalesCheck").checked,
+      missingBank: document.getElementById("missingBankCheck").checked,
+      missingWages: document.getElementById("missingWagesCheck").checked,
+      missingOther: document.getElementById("missingOtherCheck").checked,
+      missingOtherText: document.getElementById("missingOtherTextInput").value || "",
+      remark: document.getElementById("remarkInput").value
+    };
+
+    folders.push(newFolder);
+    saveFolders(folders);
+    e.target.reset();
+    alert("Dossier ajouté !");
+    renderFolderList();
+    renderEditList();
+  }
+
+  // ---- RECHERCHE ---- //
+  function performSearch(e) {
+    e.preventDefault();
+    const query = document.getElementById("searchName").value.toLowerCase();
+    const startDate = document.getElementById("searchStartDate").value;
+    const endDate = document.getElementById("searchEndDate").value;
+    const resultsDiv = document.getElementById("searchResults");
+    const folders = getFolders();
+
+    resultsDiv.innerHTML = "<h3>Résultats</h3>";
+
+    const filtered = folders.filter(f => {
+      let match = true;
+      if (query && !f.name.toLowerCase().includes(query)) match = false;
+      if (startDate && f.arrivalDate < startDate) match = false;
+      if (endDate && f.arrivalDate > endDate) match = false;
+      return match;
+    });
+
+    if (filtered.length === 0) {
+      resultsDiv.innerHTML += "<p>Aucun résultat.</p>";
+      return;
+    }
+
+    filtered.forEach(f => {
+      const card = document.createElement("div");
+      card.className = "folder-card";
+      card.innerHTML = `<strong>${f.name}</strong> - ${new Date(f.arrivalDate).toLocaleDateString()}`;
+      resultsDiv.appendChild(card);
+    });
+  }
+
+  // ---- ÉTATS ---- //
+  function updateStats() {
+    const folders = getFolders();
+
+    const treated = folders.filter(f => f.status === "Terminé");
+    const tableTreated = document.querySelector("#table-treated tbody");
+    tableTreated.innerHTML = treated.map(f => `
+      <tr>
+        <td>${new Date(f.arrivalDate).toLocaleDateString()}</td>
+        <td>${f.name}</td>
+        <td>${f.writings || 0}</td>
+      </tr>
+    `).join("");
+
+    const missing = folders.filter(f =>
+      f.missingPurchases || f.missingSales || f.missingBank || f.missingWages || f.missingOther
+    );
+    const tableMissing = document.querySelector("#table-missing tbody");
+    tableMissing.innerHTML = missing.map(f => {
+      let missingList = [];
+      if (f.missingPurchases) missingList.push("Achats");
+      if (f.missingSales) missingList.push("Ventes");
+      if (f.missingBank) missingList.push("Relevé");
+      if (f.missingWages) missingList.push("Salaires");
+      if (f.missingOther) missingList.push(f.missingOtherText || "Autres");
+
+      return `
+        <tr>
+          <td>${new Date(f.arrivalDate).toLocaleDateString()}</td>
+          <td>${f.name}</td>
+          <td>${missingList.join(", ")}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const totals = {};
+    let totalGeneral = 0;
+    folders.forEach(f => {
+      if (f.status === "Terminé" && typeof f.writings === "number") {
+        totals[f.name] = (totals[f.name] || 0) + f.writings;
+        totalGeneral += f.writings;
+      }
+    });
+
+    const tableTotals = document.querySelector("#table-totals tbody");
+    tableTotals.innerHTML = Object.entries(totals).map(([name, count]) => `
+      <tr><td>${name}</td><td>${count}</td></tr>
+    `).join("");
+    document.getElementById("total-general").textContent = totalGeneral;
+  }
+
+  function printTable(tableId) {
+    const table = document.getElementById(tableId).cloneNode(true);
+    const win = window.open('', '', 'height=500,width=800');
+    win.document.write('<html><head><title>Impression</title></head><body>');
+    win.document.write(`<h2>La Gestiona - Impression</h2>`);
+    win.document.write(table.outerHTML);
+    win.document.write('</body></html>');
+    win.document.close();
+    win.print();
+  }
+
+  // ---- INITIALISATION ---- //
+  document.addEventListener("DOMContentLoaded", () => {
+    renderFolderList();
+    updateStats();
+  });
+</script>
+
+</body>
+</html>
